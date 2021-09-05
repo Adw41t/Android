@@ -25,7 +25,10 @@ import com.duckduckgo.app.browser.session.WebViewSessionInMemoryStorage
 import com.duckduckgo.app.tabs.model.TabEntity
 import com.duckduckgo.app.tabs.model.TabRepository
 import com.duckduckgo.app.tabs.ui.TabSwitcherViewModel.Command
-import com.nhaarman.mockitokotlin2.*
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.lastValue
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -102,6 +105,13 @@ class TabSwitcherViewModelTest {
         val entity = TabEntity("abc", "", "", position = 0)
         testee.onTabDeleted(entity)
         verify(mockTabRepository).delete(entity)
+    }
+
+
+    @Test
+    fun whenBookmarkAllCalledThenTabsBookmarked() = runBlocking<Unit> {
+        val entity = TabEntity("abc", "", "", position = 0)
+        verify(mockTabRepository).bookmarkAllTabs(entity)
     }
 
     @Test

@@ -180,8 +180,15 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
     private fun processCommand(command: Command?) {
         when (command) {
             is Close -> finishAfterTransition()
+            is Command.ShowSavedSiteAddedConfirmation -> savedSiteAdded()
         }
     }
+
+    private fun savedSiteAdded() {
+        Snackbar.make(toolbar, getString(R.string.bookmarkAddedMessage), Snackbar.LENGTH_LONG)
+            .show()
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_tab_switcher_activity, menu)
@@ -193,6 +200,7 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
             R.id.fire -> onFire()
             R.id.newTab, R.id.newTabOverflow -> onNewTabRequested()
             R.id.closeAllTabs -> closeAllTabs()
+            R.id.bookmarkAllTabs -> bookmarkAllTabs()
             R.id.settings -> showSettings()
         }
         return super.onOptionsItemSelected(item)
@@ -259,6 +267,14 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
         launch {
             viewModel.tabs.value?.forEach {
                 viewModel.onTabDeleted(it)
+            }
+        }
+    }
+
+    private fun bookmarkAllTabs() {
+        launch {
+            viewModel.tabs.value?.forEach {
+                viewModel.onBookmarkOpenTabs(it)
             }
         }
     }

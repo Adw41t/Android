@@ -83,6 +83,11 @@
                 android:text="@string/addBookmarkMenuTitle" />
 
             <TextView
+                android:id="@+id/addAllBookmarksPopupMenuItem"
+                style="@style/Widget.DuckDuckGo.BrowserPopupMenu.Text"
+                android:text="@string/bookmarkAllTabsMenuItem" />
+
+            <TextView
                 android:id="@+id/addFavoritePopupMenuItem"
                 style="@style/Widget.DuckDuckGo.BrowserPopupMenu.Text"
                 android:text="@string/addFavoriteMenuTitle" />

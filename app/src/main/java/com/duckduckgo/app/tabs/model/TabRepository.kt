@@ -80,4 +80,7 @@ interface TabRepository {
     fun updateTabFavicon(tabId: String, fileName: String?)
 
     suspend fun selectByUrlOrNewTab(url: String)
+
+
+    suspend fun bookmarkAllTabs(tab: TabEntity)
 }

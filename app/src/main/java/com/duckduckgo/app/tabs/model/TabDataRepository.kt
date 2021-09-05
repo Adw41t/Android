@@ -19,20 +19,20 @@ package com.duckduckgo.app.tabs.model
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.duckduckgo.app.bookmarks.db.BookmarkEntity
+import com.duckduckgo.app.bookmarks.db.BookmarksDao
 import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.browser.tabpreview.WebViewPreviewPersister
 import com.duckduckgo.app.di.AppCoroutineScope
+import com.duckduckgo.app.global.DefaultDispatcherProvider
+import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.model.Site
 import com.duckduckgo.app.global.model.SiteFactory
 import com.duckduckgo.app.tabs.db.TabsDao
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -41,6 +41,8 @@ import javax.inject.Singleton
 @Singleton
 class TabDataRepository @Inject constructor(
     private val tabsDao: TabsDao,
+    private val bookmarksDao: BookmarksDao,
+    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider(),
     private val siteFactory: SiteFactory,
     private val webViewPreviewPersister: WebViewPreviewPersister,
     private val faviconManager: FaviconManager,
@@ -298,5 +300,18 @@ class TabDataRepository @Inject constructor(
      */
     private fun databaseExecutor(): Scheduler {
         return Schedulers.single()
+    }
+
+
+    override suspend fun bookmarkAllTabs(tab: TabEntity) {
+        val url = tab.url ?: return
+        val title = tab.title ?: ""
+        withContext(dispatchers.io()) {
+            if (url.isNotBlank()) {
+                faviconManager.persistCachedFavicon(tab.tabId, url)
+            }
+            val bookmarkEntity = BookmarkEntity(title = title, url = url)
+            bookmarksDao.insert(bookmarkEntity)
+        }
     }
 }

@@ -40,6 +40,7 @@ class TabSwitcherViewModel(private val tabRepository: TabRepository, private val
 
     sealed class Command {
         object Close : Command()
+        object ShowSavedSiteAddedConfirmation : Command()
     }
 
     suspend fun onNewTabRequested() {
@@ -55,6 +56,11 @@ class TabSwitcherViewModel(private val tabRepository: TabRepository, private val
     suspend fun onTabDeleted(tab: TabEntity) {
         tabRepository.delete(tab)
         webViewSessionStorage.deleteSession(tab.tabId)
+    }
+
+    suspend fun onBookmarkOpenTabs(tab: TabEntity) {
+        tabRepository.bookmarkAllTabs(tab)
+        command.value = Command.ShowSavedSiteAddedConfirmation
     }
 
     suspend fun onMarkTabAsDeletable(tab: TabEntity) {
