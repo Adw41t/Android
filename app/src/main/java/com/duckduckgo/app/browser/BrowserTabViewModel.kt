@@ -1419,16 +1419,26 @@ class BrowserTabViewModel(
         }
     }
 
-    suspend fun onBookmarkAddRequested() {
+    fun onBookmarkMenuClicked() {
         val url = url ?: return
-        val title = title ?: ""
+        viewModelScope.launch {
+            val bookmark = currentBrowserViewState().bookmark
+            if (bookmark != null) {
+                pixel.fire(AppPixelName.MENU_ACTION_EDIT_BOOKMARK_PRESSED.pixelName)
+                onEditSavedSiteRequested(bookmark)
+            } else {
+                pixel.fire(AppPixelName.MENU_ACTION_ADD_BOOKMARK_PRESSED.pixelName)
+                saveSiteBookmark(url, title ?: "")
+            }
+        }
+    }
+
+    private suspend fun saveSiteBookmark(url: String, title: String) {
         val savedBookmark = withContext(dispatchers.io()) {
             if (url.isNotBlank()) {
                 faviconManager.persistCachedFavicon(tabId, url)
             }
-            val bookmarkEntity = BookmarkEntity(title = title, url = url)
-            val id = bookmarksDao.insert(bookmarkEntity)
-            SavedSite.Bookmark(id, title, url)
+            bookmarksRepository.insert(title, url)
         }
         withContext(dispatchers.main()) {
             command.value = ShowSavedSiteAddedConfirmation(savedBookmark)
@@ -1438,16 +1448,17 @@ class BrowserTabViewModel(
     suspend fun bookmarkAllTabs(tab: TabEntity) {
         val url = tab.url ?: return
         val title = tab.title ?: ""
-        withContext(dispatchers.io()) {
+        val savedBookmark = withContext(dispatchers.io()) {
             if (url.isNotBlank()) {
                 faviconManager.persistCachedFavicon(tab.tabId, url)
             }
-            val bookmarkEntity = BookmarkEntity(title = title, url = url)
-            bookmarksDao.insert(bookmarkEntity)
+            bookmarksRepository.insert(title, url)
+        }
+        withContext(dispatchers.main()) {
+            command.value = ShowSavedSiteAddedConfirmation(savedBookmark)
         }
     }
 
-    fun onAddFavoriteMenuClicked() {
     fun onFavoriteMenuClicked() {
         val url = url ?: return
         val favorite = currentBrowserViewState().favorite
